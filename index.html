@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Devocional — Carlos Eduardo Gutiérrez</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1C1209">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Devocional">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1C1209; --parchment: #F7F2EA; --cream: #EFE8D8;
+    --gold: #8C6A2F; --gold-light: #C4964A; --olive: #3D5A3E;
+    --olive-dim: #5C7A5D; --rose: #7A3535; --mist: #C8BFB0;
+    --white: #FDFAF5; --shadow: rgba(28,18,9,0.10);
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--parchment); color: var(--ink); min-height: 100vh; }
+
+  header { background: var(--ink); color: var(--parchment); padding: 28px 40px 22px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  header .brand h1 { font-family: 'Lora', serif; font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+  header .brand p { font-size: 0.78rem; color: var(--mist); margin-top: 4px; letter-spacing: 0.08em; text-transform: uppercase; }
+  header .verse { font-family: 'Lora', serif; font-style: italic; font-size: 0.82rem; color: var(--mist); max-width: 320px; text-align: right; line-height: 1.55; }
+
+  .tabs { display: flex; background: var(--cream); border-bottom: 2px solid var(--mist); }
+  .tab-btn { flex: 1; padding: 14px 12px; font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #888; background: none; border: none; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; }
+  .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .tab-btn:hover:not(.active) { color: var(--ink); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .form-wrap { max-width: 740px; margin: 0 auto; padding: 36px 24px 60px; }
+  .section-label { font-family: 'Lora', serif; font-size: 1.15rem; font-weight: 600; color: var(--gold); margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid var(--mist); display: flex; align-items: center; gap: 8px; }
+  .field-group { margin-bottom: 22px; }
+  .field-group label { display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--olive); margin-bottom: 8px; }
+  .date-selects { display: grid; grid-template-columns: 80px 1fr 100px; gap: 8px; }
+  .date-selects select, .field-group input[type="text"], .field-group textarea {
+    width: 100%; background: #fff; border: 2px solid var(--gold); border-radius: 6px;
+    padding: 11px 14px; font-family: 'Inter', sans-serif; font-size: 0.97rem; color: #1C1209;
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none; appearance: none;
+  }
+  .date-selects select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238C6A2F' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; cursor: pointer; font-weight: 600; }
+  .date-selects select:focus, .field-group input[type="text"]:focus, .field-group textarea:focus { border-color: var(--gold-light); box-shadow: 0 0 0 3px rgba(196,150,74,0.18); }
+  .field-group textarea { min-height: 90px; line-height: 1.6; resize: vertical; }
+  .field-group textarea.tall { min-height: 120px; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 580px) { .row-2 { grid-template-columns: 1fr; } .date-selects { grid-template-columns: 70px 1fr 90px; } }
+  .divider { border: none; border-top: 1px dashed var(--mist); margin: 28px 0; }
+  .btn-save { width: 100%; padding: 15px; background: var(--olive); color: #fff; font-family: 'Inter', sans-serif; font-size: 0.92rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+  .btn-save:hover { background: #2f4530; }
+
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--ink); color: var(--parchment); font-size: 0.88rem; padding: 13px 26px; border-radius: 50px; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .journal-wrap { max-width: 820px; margin: 0 auto; padding: 36px 24px 60px; }
+  .journal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .journal-header h2 { font-family: 'Lora', serif; font-size: 1.3rem; font-weight: 700; }
+  .journal-header .count { font-size: 0.8rem; color: #888; font-weight: 500; }
+
+  .export-bar { background: var(--ink); border-radius: 8px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .export-bar p { font-size: 0.83rem; color: var(--mist); line-height: 1.5; flex: 1; }
+  .export-bar p strong { color: var(--parchment); }
+  .btn-export { background: var(--gold); color: #fff; font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border: none; border-radius: 6px; padding: 11px 20px; cursor: pointer; white-space: nowrap; transition: background 0.2s; flex-shrink: 0; }
+  .btn-export:hover { background: #705220; }
+  .btn-export:disabled { background: #999; cursor: not-allowed; }
+
+  .search-bar { width: 100%; padding: 11px 14px; border: 2px solid var(--gold); border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 0.93rem; background: #fff; color: var(--ink); outline: none; margin-bottom: 24px; transition: border-color 0.2s; }
+  .search-bar:focus { border-color: var(--gold-light); box-shadow: 0 0 0 3px rgba(196,150,74,0.15); }
+
+  .entry-card { background: var(--white); border-radius: 10px; border: 1px solid var(--cream); box-shadow: 0 2px 12px var(--shadow); margin-bottom: 20px; overflow: hidden; transition: box-shadow 0.2s; }
+  .entry-card:hover { box-shadow: 0 4px 20px rgba(28,18,9,0.14); }
+  .entry-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px 14px; border-bottom: 1px solid var(--cream); cursor: pointer; }
+  .entry-head .meta { flex: 1; }
+  .entry-date { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+  .entry-theme { font-family: 'Lora', serif; font-size: 1.05rem; font-weight: 700; color: var(--ink); line-height: 1.25; }
+  .entry-passage { font-size: 0.8rem; color: var(--olive-dim); margin-top: 4px; font-weight: 500; }
+  .entry-toggle { font-size: 1.2rem; color: var(--gold); flex-shrink: 0; margin-top: 2px; transition: transform 0.25s; font-weight: 700; }
+  .entry-card.open .entry-toggle { transform: rotate(180deg); }
+  .entry-body { display: none; padding: 20px; }
+  .entry-card.open .entry-body { display: block; }
+  .entry-field { margin-bottom: 18px; }
+  .entry-field-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--olive); margin-bottom: 5px; }
+  .entry-field-text { font-size: 0.92rem; line-height: 1.7; color: #3a3028; white-space: pre-wrap; }
+  .entry-field-text.empty { color: var(--mist); font-style: italic; }
+  .entry-actions { display: flex; gap: 10px; padding: 12px 20px; border-top: 1px solid var(--cream); background: var(--parchment); }
+  .btn-edit, .btn-delete { font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; padding: 8px 18px; border-radius: 5px; border: none; cursor: pointer; transition: background 0.2s; text-transform: uppercase; }
+  .btn-edit { background: var(--gold); color: #fff; }
+  .btn-edit:hover { background: #705220; }
+  .btn-delete { background: transparent; color: var(--rose); border: 2px solid var(--rose); }
+  .btn-delete:hover { background: var(--rose); color: #fff; }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: #aaa; }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .loading { text-align: center; padding: 48px; color: #aaa; }
+
+  .overlay { position: fixed; inset: 0; background: rgba(28,18,9,0.5); z-index: 100; display: none; align-items: center; justify-content: center; }
+  .overlay.show { display: flex; }
+  .dialog { background: var(--white); border-radius: 10px; padding: 28px; max-width: 360px; width: 90%; box-shadow: 0 8px 40px rgba(0,0,0,0.2); }
+  .dialog h3 { font-family: 'Lora', serif; font-size: 1.1rem; margin-bottom: 10px; }
+  .dialog p { font-size: 0.88rem; color: #666; line-height: 1.5; margin-bottom: 20px; }
+  .dialog-btns { display: flex; gap: 10px; justify-content: flex-end; }
+  .btn-cancel { background: var(--cream); color: var(--ink); border: none; border-radius: 5px; padding: 9px 18px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+  .btn-confirm-del { background: var(--rose); color: #fff; border: none; border-radius: 5px; padding: 9px 18px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+
+  .scroll-top { position: fixed; bottom: 28px; right: 28px; width: 42px; height: 42px; background: var(--ink); color: var(--parchment); border: none; border-radius: 50%; font-size: 1.2rem; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 50; }
+  .scroll-top.visible { opacity: 1; pointer-events: auto; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>✦ Devocional Diario</h1>
+    <p>Carlos Eduardo Gutiérrez</p>
+  </div>
+  <div class="verse">"Tu palabra es lámpara a mis pies<br>y lumbrera a mi camino."<br>— Salmo 119:105</div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('form',this)">📝 Nuevo registro</button>
+  <button class="tab-btn" onclick="showTab('journal',this)">📖 Mi diario</button>
+</div>
+
+<div id="panel-form" class="panel active">
+  <div class="form-wrap">
+    <div class="section-label"><span>📅</span> Registro del día</div>
+    <div class="row-2">
+      <div class="field-group">
+        <label>Fecha</label>
+        <div class="date-selects">
+          <select id="f-day" onchange="syncDate()"></select>
+          <select id="f-month" onchange="syncDate()">
+            <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+          </select>
+          <select id="f-year" onchange="syncDate()"></select>
+        </div>
+        <input type="hidden" id="f-date">
+      </div>
+      <div class="field-group">
+        <label>Pasaje del día</label>
+        <input type="text" id="f-passage" placeholder="Ej: Juan 3:16">
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Tema</label>
+      <input type="text" id="f-theme" placeholder="Ej: El amor de Dios que transforma">
+    </div>
+    <hr class="divider">
+    <div class="section-label"><span>💡</span> Reflexión personal</div>
+    <div class="field-group"><label>¿Cuál es el mensaje central?</label><textarea id="f-central" class="tall" placeholder="¿Qué está diciendo Dios a través de este pasaje?"></textarea></div>
+    <div class="field-group"><label>¿Qué me enseñó este pasaje?</label><textarea id="f-taught" class="tall" placeholder="¿Qué aprendí hoy que no sabía o que necesitaba recordar?"></textarea></div>
+    <div class="field-group"><label>¿Qué fue lo que más me llamó la atención?</label><textarea id="f-attention" class="tall" placeholder="Una palabra, frase o idea que me impactó especialmente..."></textarea></div>
+    <div class="field-group"><label>¿Cómo lo aplico?</label><textarea id="f-apply" class="tall" placeholder="Un paso concreto que voy a dar hoy..."></textarea></div>
+    <hr class="divider">
+    <div class="section-label"><span>🙏</span> Oración personal</div>
+    <div class="field-group"><textarea id="f-prayer" class="tall" placeholder="Escribe aquí tu oración de cierre para este día..."></textarea></div>
+    <input type="hidden" id="edit-id" value="">
+    <button class="btn-save" id="btn-save" onclick="saveEntry()">Guardar devocional</button>
+  </div>
+</div>
+
+<div id="panel-journal" class="panel">
+  <div class="journal-wrap">
+    <div class="journal-header">
+      <h2>Mi diario devocional</h2>
+      <span class="count" id="entry-count">0 registros</span>
+    </div>
+    <div class="export-bar">
+      <p><strong>📄 Exportar a Word</strong><br>Descarga tu devocional completo con todo el historial en un solo clic.</p>
+      <button class="btn-export" id="btn-export" onclick="exportWord()">⬇ Descargar Word</button>
+    </div>
+    <input class="search-bar" type="text" id="search" placeholder="🔍  Buscar por tema, pasaje o fecha..." oninput="renderJournal()">
+    <div id="journal-list"><div class="loading">Cargando registros...</div></div>
+  </div>
+</div>
+
+<div class="overlay" id="del-overlay">
+  <div class="dialog">
+    <h3>Eliminar registro</h3>
+    <p>¿Estás seguro? Esta acción no se puede deshacer.</p>
+    <div class="dialog-btns">
+      <button class="btn-cancel" onclick="closeDeleteDialog()">Cancelar</button>
+      <button class="btn-confirm-del" onclick="confirmDelete()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<button class="scroll-top" id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+// ── DEVOCIONALES BASE (precargados) ──────────────────────
+const BASE_DEVOTIONALS = [
+  { id:"base-1",  date:"2026-06-25", theme:"La Lámpara que No Se Esconde",                    passage:"Lucas 11:33-36",        central:"Nadie enciende una lámpara para esconderla bajo un cajón o debajo de la cama, sino que la pone en un lugar alto para que alumbre a todos los que entran. Jesús usa esta imagen para enseñarnos que la vida cristiana no es algo privado: la luz que Él pone en nosotros tiene un propósito público. Si nuestro interior está lleno de luz, todo nuestro ser brillará y esa luz tocará a quienes nos rodean.", taught:"Aprendí que existe una conexión directa entre lo que entra a mi corazón y lo que proyecto hacia afuera. Jesús habla del ojo como la lámpara del cuerpo: lo que dejo entrar por mis sentidos, lo que contemplo, lo que consumo mentalmente, determina si soy portador de luz u oscuridad. No puedo pretender brillar para afuera si por adentro estoy llenándome de cosas que apagan esa luz.", attention:"Me impactó profundamente que Jesús diga que si tu ojo está en buen estado, todo tu cuerpo estará lleno de luz, pero si tu ojo es malo, también tu cuerpo estará en oscuridad. Es una advertencia sobre la vigilancia interior. La batalla por ser luz empieza mucho antes de que salga de casa: empieza en lo que elijo ver, escuchar y pensar.", apply:"Esta semana voy a hacer un examen honesto de lo que estoy dejando entrar: redes sociales, conversaciones, contenidos. Voy a preguntarme si esas cosas alimentan la luz en mí o la apagan. Y voy a ser más intencional en llenar mi mente con la Palabra, adoración y comunidad que avivan el fuego.", prayer:"Señor, quiero ser una lámpara encendida, no escondida. Guarda mis ojos y mi corazón de todo lo que apague Tu luz en mí. Ayúdame a vivir de tal manera que quienes me rodean vean algo diferente y quieran conocer la fuente de esa luz. En el nombre de Jesús, amén." },
+  { id:"base-2",  date:"2026-06-26", theme:"Vivir para Glorificar a Dios ante el Mundo",       passage:"Filipenses 2:15",        central:"Pablo llama a los creyentes a ser irreprensibles y sencillos, hijos de Dios sin mancha en medio de una generación torcida y perversa, brillando como luminares en el mundo. La vida cristiana auténtica es contracultural por naturaleza: no porque busque serlo, sino porque la santidad genuina contrasta con el entorno de manera natural.", taught:"Aprendí que ser luz en el mundo no depende de grandes declaraciones ni de peleas culturales, sino de la acumulación de días vividos con integridad, bondad y carácter. La gente no recuerda los sermones que predicamos sino la vida que vivimos. Cada decisión pequeña de honestidad, de generosidad, de pureza, va construyendo el testimonio que Dios usa.", attention:"Lo que más me llamó la atención es el contraste que Pablo establece: generación torcida y perversa versus luminares en el mundo. No hay término medio: o uno se funde con el entorno o brilla en él. La tibieza espiritual no produce luz, produce invisibilidad. Y la invisibilidad no glorifica a Dios.", apply:"Hoy voy a identificar un área concreta donde me he estado mimetizando con el mundo en lugar de brillar. Voy a tomar una decisión deliberada de ser diferente en esa área, no por orgullo espiritual sino por amor a Dios y a quienes me rodean.", prayer:"Padre, no quiero ser invisible. Quiero que mi vida sea tan diferente, tan marcada por Tu amor y Tu carácter, que las personas se pregunten qué tengo. Hazme un luminar fiel en el lugar donde me pusiste. Amén." },
+  { id:"base-3",  date:"2026-06-27", theme:"Sellados con el Espíritu",                          passage:"Efesios 1:13-14",        central:"Pablo explica que al creer en Cristo y oír la palabra de verdad, fuimos sellados con el Espíritu Santo prometido. Ese Espíritu es las arras, el anticipo y garantía de nuestra herencia, hasta la redención de la posesión adquirida. El Espíritu en nosotros no es solo un don para el presente: es la firma de Dios sobre nuestra vida.", taught:"Aprendí que mi seguridad eterna no descansa en mis emociones ni en mi constancia, sino en el sello de Dios mismo. El Espíritu es la garantía. No es que yo lo aguante a Él, sino que Él me sostiene a mí. Eso transforma completamente la manera en que enfrento los días de duda y las temporadas secas.", attention:"Me impactó la palabra arras, que en el contexto comercial del mundo antiguo significaba el primer pago que comprometía al comprador a completar la transacción. Dios pagó el precio completo en la cruz, pero el Espíritu en mí es la señal de que lo que comenzó, será completado.", apply:"Cuando sienta dudas sobre mi fe o mi salvación, voy a recordar este versículo: el Espíritu en mí es la garantía de Dios. No tengo que ganarme lo que ya fue sellado. Voy a descansar en esa verdad hoy.", prayer:"Señor, gracias porque Tu sello sobre mi vida no depende de mi estado emocional. Gracias porque el Espíritu en mí es Tu firma, Tu garantía, Tu promesa cumplida. En los días en que no sienta nada, ayúdame a descansar en lo que sé: que soy Tuyo, sellado para siempre. Amén." },
+  { id:"base-4",  date:"2026-06-28", theme:"Cuerpo Templo del Espíritu Santo",                  passage:"1 Corintios 6:19-20",   central:"Pablo hace una pregunta que sacude: ¿O ignoráis que vuestro cuerpo es templo del Espíritu Santo? Y concluye: no os pertenecéis a vosotros mismos, pues habéis sido comprados por precio. El cuerpo no es algo sin importancia espiritual: es la morada del Espíritu y el instrumento de nuestra gloria a Dios.", taught:"Aprendí que la espiritualidad cristiana no es etérea ni desconectada del cuerpo. Lo que hago con mi cuerpo importa espiritualmente. Mis hábitos de sueño, alimentación, descanso y pureza tienen una dimensión espiritual directa porque el Espíritu habita en este cuerpo.", attention:"Lo que más me marcó fue la frase: fuisteis comprados por precio. Tengo un dueño, y ese dueño pagó el precio más alto posible por mí. Eso cambia radicalmente la pregunta que me hago cuando tomo decisiones sobre mi cuerpo.", apply:"Voy a revisar mis hábitos corporales con una pregunta nueva: ¿Estoy cuidando el templo del Espíritu Santo? No desde el perfeccionismo sino desde la gratitud.", prayer:"Padre, perdóname por las veces que he tratado mi cuerpo como si me perteneciera solo a mí. Ayúdame a honrarte en cada área. Que el templo que me prestaste refleje al Espíritu que lo habita. Amén." },
+  { id:"base-5",  date:"2026-06-29", theme:"Guiados por el Espíritu",                           passage:"Romanos 8:9",           central:"Pablo traza una línea clara: los que viven según la carne están en la carne, pero los que viven según el Espíritu están en el Espíritu. La presencia del Espíritu no es una experiencia emocional reservada a algunos: es la marca que distingue a quienes pertenecen a Cristo.", taught:"Aprendí que vivir en el Espíritu no es un estado espiritual avanzado al que solo llegan los muy devotos, sino la condición normal del creyente nacido de nuevo. El Espíritu mora en mí y quiere guiar cada área de mi vida.", attention:"Me impactó que el versículo no habla del Espíritu como algo que buscamos de vez en cuando. Habla de alguien que mora, que habita permanentemente. Es una presencia constante, no ocasional.", apply:"A lo largo del día voy a hacer pausas deliberadas para reconocer la presencia del Espíritu antes de tomar decisiones importantes o de reaccionar ante algo difícil.", prayer:"Espíritu Santo, perdóname por las veces que actúo como si no existieras. Quiero aprender a caminar contigo momento a momento. Hazme sensible a Tu voz y obediente a Tu guía. Amén." },
+  { id:"base-6",  date:"2026-06-30", theme:"Todo para la Gloria de Dios",                       passage:"1 Corintios 10:31-32", central:"Pablo cierra su argumento sobre la libertad cristiana con una conclusión que lo abarca todo: ya sea que comáis o bebáis, o hagáis otra cosa, hacedlo todo para la gloria de Dios. No seáis tropiezo ni a judíos, ni a gentiles, ni a la iglesia de Dios. La gloria de Dios y el bien del prójimo son los dos ejes que orientan cada decisión.", taught:"Aprendí que no existe una división entre lo sagrado y lo secular en la vida del creyente. Comer, trabajar, descansar, relacionarme: todo puede y debe hacerse para la gloria de Dios. La intención del corazón santifica lo ordinario.", attention:"Lo que más me llamó la atención fue la segunda parte: no seáis tropiezo. Mis decisiones tienen un efecto en quienes me rodean. Puedo ejercer mi libertad legítimamente y aun así hacer tropezar a alguien más débil en la fe.", apply:"Esta semana voy a escoger una actividad completamente cotidiana y hacerla conscientemente como un acto de adoración a Dios, comenzando con una oración de intención.", prayer:"Señor, quiero que mi vida entera sea un acto de adoración. Enséñame a comer, trabajar y descansar para Tu gloria. Que cada área de mi vida esté rendida a Ti. Amén." },
+  { id:"base-7",  date:"2026-07-01", theme:"El Sacrificio de Alabanza",                         passage:"Hebreos 13:15",         central:"El autor de Hebreos nos llama a ofrecer continuamente a Dios un sacrificio de alabanza: el fruto de labios que confiesan Su nombre. La alabanza es presentada deliberadamente como un sacrificio, algo que se ofrece con intención, que puede costar, y que tiene valor espiritual real.", taught:"Aprendí que la alabanza se llama sacrificio precisamente porque no siempre surge naturalmente. Hay mañanas en que el corazón no está animado y alabar cuesta. Es justo en esos momentos cuando la alabanza tiene más peso, porque no nace de la emoción sino de la fe.", attention:"Me impactó la palabra continuamente. No dice a veces o en los cultos del domingo. Dice continuamente. La alabanza continua es un estilo de vida, una postura del corazón.", apply:"Hoy voy a alabar a Dios en algo que me esté costando, diciéndolo en voz alta: Señor, te alabo aunque no entiendo esto.", prayer:"Padre, ayúdame a que mi alabanza no sea solo un reflejo de mis circunstancias favorables. Quiero ofrecerte el sacrificio de alabanza especialmente en los días difíciles. Amén." },
+  { id:"base-8",  date:"2026-07-02", theme:"Orar con Fe, No con Doblez",                        passage:"Santiago 4:1-3",        central:"Santiago expone la raíz de las oraciones sin respuesta: pedimos y no recibimos porque pedimos mal, para gastar en nuestros propios placeres. El problema no es que Dios no pueda responder, sino que los motivos con que pedimos están equivocados.", taught:"Aprendí que Dios no es una máquina expendedora espiritual. Él responde a oraciones que nacen de corazones alineados con Su voluntad. Revisar mis motivos al orar es honestidad espiritual, no desconfianza.", attention:"Me llamó la atención que Santiago diga que pedimos para gastar en nuestros propios placeres. Es una radiografía de muchas de mis oraciones. La oración madura no es decirle a Dios lo que yo necesito, es alinear mi corazón con lo que Él desea.", apply:"Antes de presentar mis peticiones hoy, voy a examinar honestamente por qué quiero lo que estoy pidiendo. Ese examen va a cambiar cómo oro.", prayer:"Señor, perdóname por las oraciones llenas de mis propios deseos disfrazados de necesidades espirituales. Purifica mis motivos. Enséñame a orar: no mi voluntad, sino la Tuya. Amén." },
+  { id:"base-9",  date:"2026-07-03", theme:"La Intercesión como Ministerio",                    passage:"2 Tesalonicenses 3:1",  central:"Pablo pide a los creyentes de Tesalónica que oren por él, para que la Palabra del Señor corra y sea glorificada. El apóstol más grande del Nuevo Testamento reconoce que necesita la intercesión de otros para que su ministerio avance.", taught:"Aprendí que la oración intercesora no es un complemento devocional bonito: es un ministerio real con impacto directo en el avance del reino de Dios. Cuando oro por líderes y misioneros, estoy participando activamente en la obra de Dios.", attention:"Me llamó mucho la atención que Pablo, con toda su fe y experiencia, pidiera la intercesión de una iglesia joven. Nadie es tan espiritual como para no necesitar que otros oren por él.", apply:"Esta semana voy a comprometer un tiempo específico de intercesión por personas que están en la línea del frente: un pastor, un misionero, alguien compartiendo el evangelio.", prayer:"Señor, ayúdame a entender que la oración intercesora es un ministerio, no un lujo. Úsame como intercesor fiel. Amén." },
+  { id:"base-10", date:"2026-07-04", theme:"Orar Sin Cesar con Acción de Gracias",              passage:"1 Tesalonicenses 5:18", central:"Pablo concentra en pocas palabras la voluntad de Dios: en todo dad gracias, porque esta es la voluntad de Dios para con vosotros en Cristo Jesús. Es una declaración de lo que Dios quiere para cada uno de sus hijos, en cualquier circunstancia.", taught:"Aprendí que dar gracias en todo no significa fingir que todo está bien ni negar el dolor. Es una gratitud anclada en la soberanía de Dios: la confianza de que Él está en control incluso cuando no entiendo.", attention:"Me llamó la atención que esto sea presentado como la voluntad de Dios. Elegir dar gracias en todo es un acto de fe y de rendición a la voluntad de Dios, aunque el corazón no lo sienta.", apply:"Voy a comenzar un diario de gratitud. Cada noche, antes de dormir, escribiré tres cosas concretas por las que le doy gracias a Dios, incluyendo las difíciles.", prayer:"Padre, enséñame a dar gracias cuando no tengo ganas. Que la gratitud sea el ritmo de mi vida, no solo de mis buenos días. Amén." },
+  { id:"base-11", date:"2026-07-05", theme:"La Adoración en Espíritu y en Verdad",              passage:"Juan 4:23",            central:"Jesús le dice a la mujer samaritana que la hora viene cuando los verdaderos adoradores adorarán al Padre en espíritu y en verdad; porque también el Padre tales adoradores busca. El lugar y el ritual quedan desplazados por algo más profundo: la adoración del corazón.", taught:"Aprendí que Dios no está buscando performances religiosas perfectas ni liturgias elaboradas. Está buscando adoradores verdaderos que lo adoren desde el corazón, en espíritu y en verdad.", attention:"Lo que más me impactó fue la frase el Padre tales adoradores busca. Dios sale a buscar adoradores genuinos. Hay algo humillante y hermoso en que el Dios del universo desee activamente mi adoración sincera.", apply:"La próxima vez que participe en un tiempo de alabanza, voy a hacer una pausa y preguntarme: ¿Estoy aquí para cumplir o para adorar de verdad?", prayer:"Padre, no quiero darte rituales vacíos. Quiero ser de los adoradores que Tú buscas. Enséñame a adorarte en espíritu y en verdad, todos los días. Amén." },
+  { id:"base-12", date:"2026-07-06", theme:"El Pecado que Interrumpe la Oración",               passage:"Isaías 59:2",          central:"Isaías señala que no es que la mano del Señor se haya acortado para salvar, sino que las iniquidades han hecho separación entre el pueblo y su Dios, y los pecados han hecho que Él esconda Su rostro. El problema no está del lado de Dios.", taught:"Aprendí que si siento que mis oraciones no llegan a ningún lado, vale la pena hacer una pausa honesta y preguntarme: ¿Hay algo en mi vida que esté creando una barrera con Dios? No desde la condenación, sino desde el diagnóstico.", attention:"Me impactó la claridad del texto. Dios no se alejó. Nosotros nos alejamos. Y mientras haya pecado que no hemos traído a la luz de Su gracia, esa barrera permanece.", apply:"Antes de mi tiempo de oración de hoy, voy a hacer un momento de examen de conciencia honesto, confesar lo que el Espíritu me señale y orar con la confianza de que estoy limpio.", prayer:"Señor, examíname. Muéstrame si hay algo en mi vida que esté poniendo distancia entre Tú y yo. Perdóname, límpiame, y restáurame a la comunión contigo. En el nombre de Jesús, amén." },
+  { id:"base-13", date:"2026-07-07", theme:"Los que Conocen Su Nombre Confían en Él",           passage:"Salmo 9:10",           central:"El salmista declara: en Ti confiarán los que conocen Tu nombre, por cuanto Tú, oh Jehová, no desamparaste a los que Te buscaron. La confianza en Dios no es ciega: está basada en el conocimiento de quién es Él.", taught:"Aprendí que la confianza en Dios crece en proporción directa al conocimiento de Dios. Entre más lo conozco, más fácil me resulta confiarle las cosas que me preocupan y el futuro que me da miedo.", attention:"Me llamó la atención la promesa final: no desamparaste a los que Te buscaron. No dice a los perfectos ni a los más devotos. Dice a los que Te buscaron. Buscar a Dios, aunque sea a tientas, es suficiente.", apply:"Esta semana voy a dedicar tiempo a conocer más a Dios, no solo a pedirle cosas. Voy a leer sobre Sus atributos y recordar momentos en mi vida donde Él no me desamparó.", prayer:"Señor, quiero conocerte más. Cada vez que te conozco más, confío más. Revélate a mí en Tu Palabra y en la oración. Que mi confianza en Ti crezca con cada día. Amén." },
+  { id:"base-14", date:"2026-07-08", theme:"La Oración que Mueve el Cielo",                     passage:"Juan 16:24",           central:"Jesús les dice a sus discípulos: hasta ahora nada habéis pedido en mi nombre; pedid, y recibiréis, para que vuestro gozo sea cumplido. Les está abriendo una puerta que no conocían: la oración en Su nombre tiene un poder que cambia situaciones y produce gozo completo.", taught:"Aprendí que orar en el nombre de Jesús no es solo una fórmula de cierre. Es presentarme ante el Padre con toda la autoridad y el mérito de Cristo, no el mío. Eso cambia completamente la confianza con la que me acerco a orar.", attention:"Lo que más me impactó fue la meta final: para que vuestro gozo sea cumplido. Dios no nos da lo que pedimos para que tengamos más cosas. El propósito es el gozo completo en Él.", apply:"Hoy voy a revisar mis oraciones con una pregunta nueva: ¿Lo que estoy pidiendo me acerca al gozo que Dios quiere para mí, o solo busca eliminar incomodidades?", prayer:"Padre, vengo en el nombre de Jesús, no en el mío. Ese nombre abre puertas que mis méritos jamás podrían abrir. Ayúdame a pedir con fe y a confiar en que Tú respondes para que mi gozo sea completo. Amén." },
+  { id:"base-15", date:"2026-07-09", theme:"Un Solo Cuerpo, Muchos Miembros",                   passage:"1 Corintios 12:12",    central:"Pablo usa la imagen del cuerpo humano para explicar la iglesia: así como el cuerpo es uno y tiene muchos miembros, así también Cristo. Cada creyente es un miembro del cuerpo de Cristo, con una función única e irremplazable.", taught:"Aprendí que no hay miembros del cuerpo de Cristo que sean innecesarios. Cada persona en la iglesia tiene un propósito. Cuando alguien no funciona en su llamado, todo el cuerpo lo siente.", attention:"Me llamó la atención que Pablo diga que todos fuimos bautizados en un solo cuerpo por el Espíritu. Mi lugar en la iglesia no es resultado de mis méritos: es un acto soberano del Espíritu.", apply:"Voy a preguntarme: ¿Cuál es mi don específico en la comunidad de fe? ¿Lo estoy ejerciendo? Voy a buscar una manera concreta de servir esta semana.", prayer:"Señor, gracias por haberme colocado en el cuerpo de Cristo. Ayúdame a entender qué parte soy y a ejercerla con fidelidad. Hazme un miembro activo y necesario. Amén." },
+  { id:"base-16", date:"2026-07-10", theme:"Reunidos en Su Nombre",                             passage:"Mateo 18:20",          central:"Jesús hace una promesa poderosa: donde dos o tres se reúnen en mi nombre, allí estoy yo en medio de ellos. La presencia de Cristo no depende del tamaño de la reunión sino de que Su nombre sea el centro.", taught:"Aprendí que no necesito grandes congregaciones ni edificios impresionantes para experimentar la presencia genuina de Dios. Dos o tres personas reunidas de verdad en el nombre de Jesús es suficiente.", attention:"Lo que más me llamó la atención es que la promesa no tiene condiciones de tamaño. No dice donde haya mil personas. Dice donde dos o tres. Eso democratiza completamente el acceso a la presencia de Dios.", apply:"Voy a valorar más los encuentros pequeños con hermanos en la fe. Una reunión de oración de tres personas tiene la misma presencia de Cristo que una catedral llena.", prayer:"Señor Jesús, gracias porque Tu presencia no depende de mis circunstancias. Enséñame a reconocerte y a buscarte en los encuentros simples y cotidianos. Amén." },
+  { id:"base-17", date:"2026-07-11", theme:"El Amor que Nos Distingue",                         passage:"1 Juan 3:14",          central:"Juan hace una afirmación contundente: nosotros sabemos que hemos pasado de muerte a vida, en que amamos a los hermanos. El amor fraternal es la evidencia más clara de que la vida espiritual genuina está presente.", taught:"Aprendí que el amor a los hermanos no es el resultado opcional de la salvación, es una de sus señales más visibles. Si no hay amor genuino por quienes comparten mi fe, algo en mi relación con Dios necesita revisión.", attention:"Me impactó la afirmación tan directa: hemos pasado de muerte a vida. La evidencia de esa transformación no es hablar en lenguas ni tener grandes conocimientos bíblicos. Es amar a los hermanos.", apply:"Esta semana voy a hacer una acción concreta de amor por alguien de mi comunidad que lo esté pasando difícil, sin esperar nada a cambio y sin que nadie lo sepa.", prayer:"Padre, examina mi corazón. ¿Amo de verdad a mis hermanos? Enséñame a amar como Tú amas: sin condiciones y con obras. Amén." },
+  { id:"base-18", date:"2026-07-12", theme:"La Humildad de Llamarnos Hermanos",                 passage:"Mateo 23:8",           central:"Jesús corta de raíz la cultura de los títulos religiosos: vosotros no queráis que os llamen Rabí; porque uno es vuestro Maestro, el Cristo, y todos vosotros sois hermanos. Frente a Cristo, todos somos iguales.", taught:"Aprendí que el liderazgo en el reino no se ejerce desde la superioridad espiritual ni desde los títulos, sino desde el servicio. Cuando busco reconocimiento por mi posición en la iglesia, voy en contra de este versículo.", attention:"Me llamó mucho la atención que Jesús use la palabra todos: todos vosotros sois hermanos. Es una declaración de igualdad radical. El pastor y el recién convertido son hermanos.", apply:"Voy a ser más consciente de cómo me relaciono con personas que considero espiritualmente superiores o inferiores a mí. En Cristo, somos hermanos.", prayer:"Señor Jesús, perdóname por las veces que he buscado reconocimiento espiritual. Ayúdame a vivir esa hermandad con humildad genuina, valorando a cada creyente como alguien por quien Tú también moriste. Amén." },
+  { id:"base-19", date:"2026-07-13", theme:"Conformados a la Imagen de Cristo",                 passage:"Romanos 8:29",          central:"Pablo revela el propósito eterno de Dios: los predestinó para que fuesen hechos conformes a la imagen de su Hijo. El plan de Dios no es solo salvarnos: es transformarnos para que nos parezcamos cada vez más a Jesús.", taught:"Aprendí que todo lo que me sucede, incluyendo las dificultades y las temporadas secas, está siendo usado por Dios con un propósito: hacerme parecido a Cristo. Eso redefine lo que significa que algo sea bueno para mí.", attention:"Me impactó que este versículo viene justo después de Romanos 8:28. El bien al que todo apunta no es bienestar material: es ser conformados a la imagen de Cristo. El sufrimiento no es un obstáculo al plan de Dios, es parte de cómo Dios lo cumple.", apply:"Cuando enfrente algo difícil, en lugar de solo preguntar por qué me pasa esto, voy a añadir: ¿Cómo puede esto hacerme más parecido a Jesús?", prayer:"Padre, confío en que Tu propósito para mi vida es hacerme parecido a Tu Hijo. Úsalo todo para transformarme. Que al final de mi vida, quien me vea, vea cada vez más a Cristo. Amén." },
+  { id:"base-20", date:"2026-07-14", theme:"Separados pero Unidos en Cristo",                   passage:"2 Corintios 6:18",      central:"Dios hace una promesa de relación filial: seré para vosotros por Padre, y vosotros me seréis hijos e hijas. La intimidad con Dios y la santidad de vida no pueden separarse: van de la mano.", taught:"Aprendí que la santidad no es un conjunto de reglas para ganar el favor de Dios, sino la consecuencia natural de querer profundizar la relación con Él. Me separo del mal porque amo a quien me salvó.", attention:"Lo que más me llamó la atención es que Dios mismo dice yo os recibiré. Cuando hago el esfuerzo de apartarme de lo que contamina y acercarme a Él, Dios sale a recibirme.", apply:"Voy a revisar honestamente qué áreas de mi vida necesitan separación, no por legalismo sino por amor a la relación con Dios.", prayer:"Padre, quiero ser Tuyo completamente, no a medias. Muéstrame lo que necesito soltar para acercarme más a Ti. Recíbeme hoy mientras me acerco con un corazón que quiere pertenecerte del todo. Amén." },
+  { id:"base-21", date:"2026-07-15", theme:"Miembros de la Familia de Dios",                    passage:"Efesios 2:19",          central:"Pablo les recuerda a los creyentes: ya no sois extranjeros ni advenedizos, sino conciudadanos de los santos y miembros de la familia de Dios. La iglesia no es una organización a la que uno se afilia: es una familia a la que uno pertenece por gracia.", taught:"Aprendí que mi pertenencia a la iglesia no es una membresía que puedo cancelar cuando tengo diferencias con otros. Es una adopción en una familia. Eso cambia completamente cómo me relaciono con los hermanos.", attention:"Me impactó la palabra conciudadanos. En el mundo romano implicaba derechos y responsabilidades compartidas. Somos del mismo reino, con el mismo Rey, los mismos derechos espirituales.", apply:"Voy a tratar a los miembros de mi iglesia con la misma consideración con que trataría a un familiar cercano: más paciencia, más interés genuino, más disposición a servir.", prayer:"Padre, gracias por adoptarme en Tu familia. Ayúdame a honrar esa adopción en la manera en que me relaciono con mis hermanos. Amén." },
+  { id:"base-22", date:"2026-07-16", theme:"Comunidad que se Estimula al Amor",                 passage:"Hebreos 10:24-25",      central:"El autor de Hebreos da una instrucción clara: considerémonos unos a otros para estimularnos al amor y a las buenas obras; no dejando de congregarnos, sino exhortándonos; y tanto más, cuanto veis que aquel día se acerca. La comunidad cristiana no es opcional.", taught:"Aprendí que la comunidad cristiana no es solo un espacio para recibir: es un espacio en el que tengo responsabilidad activa. Estimular y exhortar requiere involucramiento real y conocer a los demás profundamente.", attention:"Lo que más me llamó la atención es la urgencia final: y tanto más, cuanto veis que aquel día se acerca. El autor vincula la reunión con la escatología. Porque el regreso de Cristo se acerca, la comunidad importa más, no menos.", apply:"Esta semana voy a ser intencional en animar a alguien de mi comunidad de fe: buscarlo específicamente, preguntarle cómo está de verdad y decirle algo que lo estimule a seguir.", prayer:"Señor, perdóname por las veces que he tratado la comunidad como algo opcional. Hazme un miembro que estimula, que anima, que no abandona cuando cuesta estar. Amén." },
+  { id:"base-23", date:"2026-07-17", theme:"La Resurrección Cambia Todo",                       passage:"Mateo 28:1-7",          central:"Las mujeres van al sepulcro y encuentran la piedra removida. Un ángel les dice: no está aquí, pues ha resucitado. Id pronto y decid a sus discípulos. La resurrección de Cristo es la noticia más importante de la historia y el fundamento de todo lo que creemos.", taught:"Aprendí que la resurrección no es un dogma que se cree pasivamente. El ángel inmediatamente dice: id pronto y decid. Si Cristo realmente resucitó, tengo algo que el mundo necesita saber. Mi silencio sobre el evangelio se vuelve inexplicable a la luz de la tumba vacía.", attention:"Me llamó la atención la frase id pronto. Hay urgencia en el mensaje del ángel. No dice id cuando tengan tiempo. La resurrección exige una respuesta inmediata y activa.", apply:"Hoy voy a meditar en lo que significa vivir como alguien que cree en la resurrección: la muerte no tiene la última palabra, tengo una misión, el miedo no debería paralizarme.", prayer:"Señor Jesús, gracias porque la tumba está vacía. Ayúdame a vivir no como alguien que cree que Jesús existió, sino como alguien que cree que Jesús vive. Amén." },
+  { id:"base-24", date:"2026-07-18", theme:"Solo Hay un Camino",                                 passage:"Romanos 3:23",          central:"Pablo establece el punto de partida del evangelio: por cuanto todos pecaron, y están destituidos de la gloria de Dios. No hay distinción. La necesidad universal del evangelio descansa sobre esta verdad universal del pecado.", taught:"Aprendí que la humildad es el primer fruto de entender este versículo. Cuando comparto el evangelio no lo hago desde arriba como si fuera mejor. Lo hago como alguien que también fue destituido de la gloria de Dios y que encontró gracia.", attention:"Me impactó el todos. No hay nadie a quien no aplique este diagnóstico. Eso me pone en el mismo nivel que cualquier persona a quien quiera compartirle el evangelio.", apply:"Voy a acercarme a las personas con quienes quiero compartir el evangelio sin aires de superioridad. Voy a recordar que yo también fui rescatado de la misma condición.", prayer:"Padre, gracias porque Tu gracia llegó hasta mí. No permitas que olvide de dónde me sacaste. Que pueda compartir el evangelio desde la gratitud, no desde la superioridad. Amén." },
+  { id:"base-25", date:"2026-07-19", theme:"El Encuentro que Cambia Todo",                      passage:"Juan 4:25-30",          central:"La mujer samaritana, tras un encuentro profundo con Jesús, deja su cántaro, va a la ciudad y dice a todos: venid, ved a un hombre que me ha dicho todo cuanto he hecho. Un encuentro genuino con Cristo no puede guardarse: se desborda inevitablemente.", taught:"Aprendí que el testimonio no es una obligación religiosa. Es el desbordamiento natural de un encuentro real con Jesús. Esta mujer no fue entrenada en evangelismo. Simplemente fue y contó lo que le había pasado.", attention:"Lo que más me impactó es que ella dejó el cántaro. Había ido por agua física y encontró agua viva. Me pregunta: ¿Cuándo fue la última vez que mi encuentro con Jesús fue tan real que me hizo olvidar todo lo demás?", apply:"Voy a reflexionar honestamente: ¿Mi encuentro con Jesús hoy fue tan real que quiero contárselo a alguien? Y si sí, voy a buscar a alguien hoy para contarle lo que Dios me habló.", prayer:"Señor Jesús, quiero encuentros contigo tan reales que no pueda guardarlos para mí. Como la mujer samaritana, quiero dejar mi cántaro y correr a decirle a otros que Te encontré. Amén." },
+  { id:"base-26", date:"2026-07-20", theme:"El Primer Discípulo que Trae a Otro",               passage:"Juan 1:40-42",          central:"Andrés es uno de los primeros en seguir a Jesús. Y lo primero que hace es buscar a su hermano Simón Pedro y decirle: hemos hallado al Mesías. El primer acto de Andrés como discípulo no fue un milagro ni un sermón: fue una invitación personal.", taught:"Aprendí que el evangelismo más poderoso muchas veces es el más sencillo: ven y ve. Andrés no tenía un entrenamiento formal. Apenas conoció a Jesús, fue a buscar a su hermano.", attention:"Lo que más me llamó la atención es la inmediatez. Andrés no esperó, no se preparó durante años. Al día siguiente fue a buscar a Pedro. Hay una urgencia en el amor que no puede esperar.", apply:"Esta semana voy a pensar en una persona específica de mi círculo cercano a quien pueda invitar a una conversación honesta sobre Jesús. Solo una persona, una invitación genuina.", prayer:"Señor, dame el corazón de Andrés: que lo primero que quiera hacer cuando me encuentre contigo sea ir a buscar a alguien para presentárselo a Ti. Amén." },
+  { id:"base-27", date:"2026-07-21", theme:"La Iglesia que Avanza",                             passage:"Hechos 4:11-31",        central:"Después de ser amenazados, los creyentes oran pidiendo más valentía para hablar. Y Dios responde: el lugar donde están reunidos tiembla y todos son llenos del Espíritu Santo. La respuesta a la presión no es retroceder sino orar.", taught:"Aprendí que la respuesta correcta ante la amenaza y la oposición no es esconderse ni bajar el perfil. Es orar y pedir más valentía. La iglesia primitiva no buscó la comodidad sino la fidelidad.", attention:"Me impactó que después de la oración el lugar donde estaban reunidos tembló. Dios respondió de manera tangible y visible. Eso me dice que Dios responde cuando oramos con fe real.", apply:"Cuando enfrente presión por mi fe, en lugar de achicarme, voy a orar pidiendo más valentía. La respuesta al miedo no es la retirada: es la oración que lleva a la audacia.", prayer:"Señor, dame la valentía de la iglesia primitiva. Que cuando enfrente presión por mi fe, mi primera respuesta sea la oración. Llena me del mismo Espíritu que llenó a esos primeros creyentes. Amén." },
+  { id:"base-28", date:"2026-07-22", theme:"Hablar con Valentía",                               passage:"Hechos 18:5-9",         central:"Pablo se dedica por completo a predicar que Jesús era el Cristo. Cuando enfrenta resistencia, Dios mismo le habla de noche: no temas, sino habla, y no calles; porque yo estoy contigo. La presencia de Dios es el fundamento de la valentía.", taught:"Aprendí que incluso los más grandes siervos de Dios tuvieron momentos de miedo. Si Pablo necesitaba que Dios le dijera no temas, yo también puedo necesitarlo, y eso no es señal de poca fe sino de humanidad.", attention:"Lo que más me llamó la atención fue que Dios le habló de noche, cuando Pablo probablemente estaba más vulnerable. Dios llega justo en el momento de mayor necesidad.", apply:"Cuando sienta miedo de hablar de mi fe, voy a apropiarme de las palabras que Dios le dijo a Pablo: no temas, sino habla, porque yo estoy contigo.", prayer:"Señor, gracias porque cuando tengo miedo, Tú eres el que dice no temas. Dame la conciencia de Tu presencia que disuelve el miedo. Y cuando llegue el momento, dame las palabras y el valor. Amén." },
+  { id:"base-29", date:"2026-07-23", theme:"Testigos en el Día a Día",                          passage:"Marcos 5:18-20",        central:"El hombre liberado de la legión de demonios quiere seguir a Jesús, pero Él le dice: vete a tu casa, a los tuyos, y cuéntales cuán grandes cosas el Señor ha hecho contigo. El primer campo misionero es el entorno más cercano.", taught:"Aprendí que no necesito irme lejos para ser testigo de Jesús. El testimonio más poderoso empieza en casa, con las personas que me conocían antes de mi transformación.", attention:"Me llamó la atención que el hombre proclamó en Decápolis, una región de diez ciudades. No se quedó solo con su familia. Su gratitud lo impulsó más allá de lo que Jesús le mandó explícitamente.", apply:"Esta semana voy a contarle a alguien de mi entorno cercano algo que Dios haya hecho en mi vida. No un sermón: solo mi historia, lo que Dios hizo y lo que significó para mí.", prayer:"Señor, dame el corazón agradecido de este hombre. Un corazón tan lleno de gratitud que no pueda guardar silencio. Ayúdame a empezar por los más cercanos. Amén." },
+
+  { id:"new-1",  date:"2026-07-25", theme:"No Hay Lugar para la Cobardía",                passage:"2 Timoteo 1:7-8",     central:"Pablo le recuerda a Timoteo que Dios no nos dio espíritu de cobardía sino de poder, amor y dominio propio, y por tanto no debe avergonzarse del evangelio. Este versículo es el corazón de la lección sobre el testimonio personal: el miedo a dar testimonio no viene de Dios, y los recursos para vencerlo sí.", taught:"Aprendí que la cobardía espiritual no es solo una debilidad humana comprensible: es una contradicción con lo que Dios ya depositó en mí. Si tengo el Espíritu de poder, no tengo excusa válida para callar. Eso no me condena, me libera: significa que el problema no es que no pueda, es que no estoy activando lo que ya tengo.", attention:"Me impactó que Pablo no diga pídele a Dios valentía: dice activa lo que ya tienes. El poder, el amor y el dominio propio ya están en mí por el Espíritu. No tengo que esperarlos; tengo que ejercerlos.", apply:"Hoy voy a identificar una situación concreta donde he estado callando por miedo y voy a dar ese paso con la conciencia de que el Espíritu de poder ya está en mí. No espero sentirme valiente para actuar: actúo y la valentía viene en el camino.", prayer:"Padre, gracias porque ya me diste todo lo que necesito para ser testigo. Hoy activo Tu poder, Tu amor y Tu dominio propio en mí. Que mis labios hablen lo que mi corazón cree. En el nombre de Jesús, amén." },
+  { id:"new-2",  date:"2026-07-26", theme:"El Testimonio Empieza en Casa",                passage:"Marcos 5:18-20",       central:"El endemoniado gadareno liberado quería seguir a Jesús, pero Él lo envió de regreso a los suyos a contar lo que Dios había hecho. El primer campo misionero asignado por Jesús mismo no fue una nación lejana sino el hogar, la familia, el entorno conocido.", taught:"Aprendí que a veces la razón por la que Dios no me lleva lejos es porque aún no he terminado mi misión cerca. Las personas que más me conocen son las que mejor pueden ver el contraste antes y después de Cristo en mi vida. Mi historia personal es mi testimonio más poderoso.", attention:"Lo que más me llamó la atención es que el hombre fue y proclamó en Decápolis, que era una región de diez ciudades. Jesús le dijo que fuera a su casa y él fue a toda su región. La gratitud no se contiene: cuando es genuina, siempre hace más de lo mínimo.", apply:"Esta semana voy a escribir en pocas líneas mi historia de transformación: cómo era antes, qué pasó con Jesús y cómo soy ahora. Ese es mi testimonio. Voy a tenerlo listo para compartirlo con alguien cercano cuando llegue la oportunidad.", prayer:"Señor, ayúdame a no menospreciar el testimonio que tengo. Mi historia de transformación es poderosa porque es real. Dame la valentía de contarla primero a los más cercanos y desde allí al mundo. Amén." },
+  { id:"new-3",  date:"2026-07-27", theme:"Dios Habla en la Oscuridad",                   passage:"Hechos 18:5-9",        central:"Pablo predicaba en Corinto con resistencia. En medio de la dificultad, Dios se le apareció de noche y le dijo: no temas, habla y no calles, porque yo estoy contigo. La presencia de Dios es la respuesta al miedo más poderosa que existe.", taught:"Aprendí que el miedo al rechazo en el testimonio es algo que incluso Pablo experimentó. Pero la respuesta de Dios no fue eliminar el peligro sino confirmar Su presencia. Dios no promete que no habrá resistencia; promete que no estaré solo en ella.", attention:"Me impactó que Dios hablara de noche, en el momento de mayor vulnerabilidad. No espera a que estemos fuertes para animarnos. Nos encuentra en la oscuridad, cuando más lo necesitamos. Eso es gracia.", apply:"Cuando sienta que mi testimonio no produce fruto o enfrenta rechazo, voy a recordar que Pablo también lo vivió en Corinto. Voy a seguir hablando, sabiendo que Dios está conmigo aunque no lo vea en los resultados inmediatos.", prayer:"Señor, en mis noches de duda y resistencia, háblame como le hablaste a Pablo. Recuérdame que estás conmigo. Que esa certeza sea suficiente para que siga abriendo la boca. Amén." },
+  { id:"new-4",  date:"2026-07-28", theme:"Valentía que Nace de la Oración",              passage:"Hechos 4:11-31",       central:"Los apóstoles, después de ser amenazados, no se escondieron: oraron pidiendo más valentía para hablar. Y el lugar tembló. La valentía para el testimonio no se fabrica con fuerza de voluntad sino que se recibe en la oración.", taught:"Aprendí que la respuesta bíblica ante el miedo al testimonio no es hacer un esfuerzo mayor sino orar con más intensidad. La iglesia primitiva no enfrentó la persecución con estrategias humanas sino con oración, y Dios respondió con poder tangible y visible.", attention:"Me impactó que pidieran específicamente valentía para hablar la Palabra con denuedo. No pidieron que desapareciera la amenaza. Pidieron más valentía para enfrentarla. Eso es fe madura: no pedir que Dios cambie las circunstancias sino que nos cambie a nosotros.", apply:"Voy a dedicar tiempo hoy a orar específicamente por valentía para dar testimonio. No voy a esperar sentirme listo. Voy a pedir el denuedo que la iglesia primitiva pidió y confiar en que Dios lo da.", prayer:"Señor, dame el denuedo de los primeros creyentes. Que mi oración hoy sacuda el lugar donde estoy y me llene del mismo Espíritu que los llenó a ellos. Hablaré Tu Palabra con valentía. Amén." },
+  { id:"new-5",  date:"2026-07-29", theme:"Trae a Alguien a Jesús Hoy",                   passage:"Juan 1:40-42",         central:"Andrés, apenas conoció a Jesús, fue a buscar a su hermano Pedro. No esperó años de madurez espiritual ni completó un curso de evangelismo. Simplemente fue y trajo a alguien. Ese es el modelo más natural y poderoso de testimonio.", taught:"Aprendí que el evangelismo más efectivo muchas veces no es el más elaborado sino el más inmediato y personal. Andrés no organizó una campaña; fue a buscar a su hermano. La invitación personal de alguien de confianza tiene un poder que ninguna estrategia masiva puede replicar.", attention:"Me llamó la atención la frase le llevó a Jesús. Andrés no trató de convencer a Pedro con argumentos. Lo llevó directamente a Jesús. Mi trabajo como testigo no es ganar debates sino conectar personas con Cristo y dejar que Él haga Su obra.", apply:"Hoy voy a pensar en una persona específica de mi entorno y voy a dar un paso concreto para acercarla a Jesús: una invitación, una conversación, un mensaje. Solo un paso, pero hoy.", prayer:"Señor, dame el corazón de Andrés. Que lo primero que quiera hacer cuando me encuentre contigo sea ir a buscar a alguien para presentárselo. Dame esa urgencia de amor que no puede esperar. Amén." },
+  { id:"new-6",  date:"2026-07-30", theme:"Cuando el Encuentro se Desborda",              passage:"Juan 4:25-30",         central:"La mujer samaritana dejó su cántaro y fue a contarles a todos sobre Jesús. No fue a un curso de evangelismo; fue desbordada por un encuentro real. El testimonio auténtico nace del desbordamiento, no de la obligación.", taught:"Aprendí que cuando el encuentro con Jesús es genuino, el testimonio fluye naturalmente. No tengo que forzarlo ni fabricarlo. Si mi vida devocional es real, si mi comunión con Cristo es viva, las palabras saldrán solas. El problema del testimonio a veces es un problema de encuentro.", attention:"Lo que más me impactó es que ella dejó el cántaro, el motivo original de su viaje. Encontró algo tan superior a lo que buscaba que olvidó lo que la llevó al pozo. Eso es lo que hace Jesús: trasciende completamente nuestras expectativas.", apply:"Voy a evaluar honestamente: ¿Mis encuentros con Jesús en el devocional son lo suficientemente reales como para desbordarse hacia otros? Si no, voy a pedirle a Dios que renueve esa intimidad antes de pedirme que testifique.", prayer:"Señor Jesús, quiero encontrarme contigo de tal manera que no pueda guardarme lo que experimento. Renueva mi intimidad contigo. Que el desbordamiento de esa comunión sea mi testimonio más poderoso. Amén." },
+  { id:"new-7",  date:"2026-07-31", theme:"El Diagnóstico que Abre la Puerta",            passage:"Romanos 3:23",         central:"Todos pecaron y están destituidos de la gloria de Dios. Esta verdad universal es el punto de partida del evangelio. Sin entender el diagnóstico, nadie busca el remedio. El testimonio efectivo comienza con la honestidad sobre la condición humana.", taught:"Aprendí que compartir el evangelio no es hablar de religión sino de realidad. La condición de separación de Dios es real en toda persona. Cuando comparto esto desde la humildad, reconociendo que yo también estaba en esa condición, abro una puerta que la superioridad espiritual siempre cierra.", attention:"Me impactó el todos. No hay excepciones. Eso nivela completamente el campo: no voy a compartir el evangelio desde arriba sino desde al lado, como alguien que recibió la misma gracia que está ofreciendo.", apply:"La próxima vez que tenga una conversación sobre fe, voy a comenzar desde mi propia historia de necesidad, no desde una posición de superioridad. Mi punto de conexión con el otro es que los dos estábamos destituidos de la gloria de Dios.", prayer:"Padre, que nunca olvide de dónde me sacaste. Que esa memoria me mantenga humilde y compasivo con quienes aún no Te conocen. Que el evangelio que comparto nazca de la gratitud, no de la superioridad. Amén." },
+  { id:"new-8",  date:"2026-08-01", theme:"La Gracia que Precede al Arrepentimiento",     passage:"Romanos 6:23, 5:8",    central:"La paga del pecado es muerte, pero la dádiva de Dios es vida eterna en Cristo Jesús. Y más aún: Dios muestra Su amor en que siendo nosotros aún pecadores, Cristo murió por nosotros. El evangelio no espera que mejoremos; nos alcanza en nuestra peor condición.", taught:"Aprendí que el corazón del evangelio no es una invitación a mejorar sino un anuncio de lo que Dios ya hizo. Cristo no murió por quien yo podría ser sino por quien yo era. Eso transforma completamente cómo presento el mensaje: no como una exigencia sino como un regalo.", attention:"Me impactó la palabra aún: siendo nosotros aún pecadores. No cuando mejoráramos, no cuando lo mereciéramos. Aún en nuestra peor condición, Cristo murió. Eso es un amor que no tiene paralelo en ninguna otra religión ni filosofía.", apply:"Al compartir el evangelio voy a enfatizar la iniciativa de Dios, no los requisitos humanos. La gente no necesita saber que debe mejorar para que Dios los ame. Necesita saber que Dios los amó primero, antes de que cambiaran nada.", prayer:"Señor, gracias porque Tu amor no esperó a que yo fuera digno. Ayúdame a comunicar ese mismo amor sin condiciones cuando testifique de Ti. Que las personas vean en mí la gracia que recibí. Amén." },
+  { id:"new-9",  date:"2026-08-02", theme:"El Camino Exclusivo y Compasivo",              passage:"Juan 14:6",            central:"Jesús dijo: Yo soy el camino, la verdad y la vida. Nadie viene al Padre sino por mí. Esta afirmación es exclusiva pero no excluyente: no cierra la puerta a nadie, sino que señala dónde está la puerta y quién la abre.", taught:"Aprendí que la exclusividad de Cristo no es arrogancia sino especificidad. Cuando alguien está perdido, decirle que solo hay un camino no es crueldad, es misericordia. El problema no es que el camino sea estrecho: el problema sería que no existiera ninguno.", attention:"Lo que más me llamó la atención es que Jesús no dijo que señalaba el camino sino que Él es el camino. No es una doctrina, es una persona. El evangelio no es un conjunto de ideas sino un encuentro con Alguien.", apply:"Cuando alguien me pregunte por qué creo que Jesús es el único camino, voy a responder no desde la defensa doctrinal sino desde el testimonio personal: Él es el camino porque yo lo he caminado y me ha llevado al Padre.", prayer:"Señor Jesús, gracias porque no solo me diste un mapa sino que Tú mismo eres el camino. Que mi testimonio invite a otros no a una religión sino a una relación contigo. Amén." },
+  { id:"new-10", date:"2026-08-03", theme:"El Llamado al Arrepentimiento",                passage:"Hechos 3:19",          central:"Pedro llama al pueblo: arrepentíos y convertíos para que sean borrados vuestros pecados. El arrepentimiento no es solo sentir tristeza por el pecado, es dar media vuelta, cambiar de dirección. Es el primer paso hacia la restauración.", taught:"Aprendí que el arrepentimiento es una buena noticia disfrazada de demanda. Cuando llamo a alguien al arrepentimiento no lo estoy condenando: le estoy ofreciendo la posibilidad de que sus pecados sean borrados. Eso es un regalo inmenso.", attention:"Me impactó la frase que los pecados sean borrados. No gestionados, no recordados de vez en cuando. Borrados. La limpieza que Dios ofrece en el arrepentimiento es total, no parcial. Eso debería hacer que el llamado al arrepentimiento sea una invitación gozosa.", apply:"Voy a hablar del arrepentimiento con alegría, no con solemnidad pesada. Cuando invite a alguien a arrepentirse, voy a presentarlo como la puerta hacia la libertad y el perdón, no como un castigo.", prayer:"Señor, ayúdame a presentar el arrepentimiento como la buena noticia que es. Que quienes me escuchen vean en el llamado a arrepentirse una invitación al amor, no una condena. Amén." },
+  { id:"new-11", date:"2026-08-04", theme:"Dos Caminos, Una Elección",                    passage:"Romanos 6:23",         central:"La paga del pecado es muerte, pero la dádiva de Dios es vida eterna en Cristo Jesús. El contraste es total: lo que el pecado produce es paga merecida; lo que Dios da es regalo inmerecido. La diferencia entre los dos caminos no podría ser más clara.", taught:"Aprendí que el evangelio siempre presenta dos realidades contrastantes: lo que el pecado produce y lo que Dios ofrece. No para aterrar sino para iluminar. Las personas necesitan ver el contraste claramente para entender la magnitud de lo que Dios les está ofreciendo.", attention:"Me llamó la atención la distinción entre paga y dádiva. La paga es algo que se gana y se merece. La dádiva es algo que se recibe gratuitamente. Nadie puede ganar la vida eterna, pero cualquiera puede recibirla. Eso cambia toda la ecuación.", apply:"Al compartir el evangelio voy a usar este contraste de manera clara: no para producir miedo sino para magnificar la generosidad de Dios. La dádiva hace más grande la gracia, no el temor.", prayer:"Padre, gracias porque lo que me diste no lo merecía. Ayúdame a comunicar esa generosidad con claridad y gozo cuando comparta el evangelio. Que la gente vea la magnitud de Tu regalo. Amén." },
+  { id:"new-12", date:"2026-08-05", theme:"El Derecho de Ser Hijos",                      passage:"Juan 1:12",            central:"A todos los que le recibieron, a los que creen en Su nombre, les dio potestad de ser hechos hijos de Dios. Recibir a Cristo no es solo seguir una religión: es entrar en una relación de filiación con el Dios del universo.", taught:"Aprendí que la oferta del evangelio no es simplemente el perdón de pecados sino la adopción como hijos de Dios. El perdón limpia el pasado; la adopción transforma la identidad. Soy hijo de Dios, no solo perdonado. Esa es una diferencia enorme.", attention:"Me impactó la palabra potestad, que implica autoridad y derecho. Al creer en el nombre de Jesús, recibo el derecho legal y espiritual de ser llamado hijo de Dios. Eso es transformador.", apply:"Voy a vivir hoy desde mi identidad como hijo de Dios, no desde mi historial de errores. Y cuando testifique, voy a presentar el evangelio como una invitación a la filiación, no solo a la salvación del infierno.", prayer:"Padre, gracias por haberme dado el derecho de llamarme Tu hijo. Ayúdame a vivir desde esa identidad y a invitar a otros a recibirla también. Que mi testimonio muestre lo que significa ser Tu hijo. Amén." },
+  { id:"new-13", date:"2026-08-06", theme:"Jesús Llama a la Puerta",                      passage:"Apocalipsis 3:20",     central:"He aquí, yo estoy a la puerta y llamo; si alguno oye mi voz y abre la puerta, entraré a él. Jesús no fuerza la entrada: llama, espera y entra solo cuando le abren. El evangelio es una invitación que respeta la libertad humana.", taught:"Aprendí que Dios no nos obliga a recibirlo. Hay una dignidad enorme en eso: el Dios del universo llama a la puerta de cada corazón y espera a que le abran. Eso me enseña cómo compartir el evangelio: con la misma paciencia y respeto, sin presionar ni manipular.", attention:"Lo que más me llamó la atención es que esta carta está dirigida a una iglesia, no a incrédulos. Jesús llama a la puerta de personas religiosas que lo tienen afuera. Eso me invita a examinar si yo mismo lo tengo adentro o solo cerca.", apply:"Hoy voy a hacer una pausa y preguntarme honestamente: ¿Tengo a Jesús adentro o solo cerca? Y al testificar, voy a invitar a las personas no a una religión sino a abrir la puerta y dejar que Jesús entre.", prayer:"Señor Jesús, gracias porque llamas con paciencia y amor. Quiero que estés completamente adentro, no en el umbral. Y ayúdame a transmitir esa misma invitación gentil a quienes me rodean. Amén." },
+  { id:"new-14", date:"2026-08-07", theme:"El Espíritu Dirige el Testimonio",             passage:"Hechos 10:19-24",      central:"El Espíritu Santo guió a Pedro hacia Cornelio antes de que Pedro supiera que Cornelio lo buscaba. El testimonio efectivo no es solo iniciativa humana: el Espíritu Santo ya está trabajando en las personas antes de que lleguemos con el mensaje.", taught:"Aprendí que no voy a testificar solo. El Espíritu Santo va adelante preparando corazones. Mi responsabilidad es ser sensible a Su guía, ir donde Él me dirija y hablar cuando Él me abra la puerta. El fruto del testimonio depende más de Su obra que de mi habilidad.", attention:"Me impactó que Cornelio ya había recibido instrucciones de Dios antes de que Pedro llegara. Dios ya estaba en el corazón de ese hombre. Cuando llegué yo con el mensaje, solo era la pieza final de algo que Dios ya había estado preparando.", apply:"Voy a orar antes de cada conversación sobre fe: Espíritu Santo, muéstrame a quién ya estás preparando y dame las palabras correctas para ese momento. Testificar es colaborar con lo que Dios ya está haciendo.", prayer:"Espíritu Santo, guíame como guiaste a Pedro. Muéstrame los Cornelios en mi entorno, personas a quienes ya estás preparando. Hazme sensible a Tus indicaciones y obediente a Tu guía. Amén." },
+  { id:"new-15", date:"2026-08-08", theme:"La Tumba Vacía lo Cambia Todo",                passage:"Mateo 28:1-7",         central:"El ángel anunció: no está aquí, pues ha resucitado. Id pronto y decid. La resurrección de Cristo es el fundamento de todo el evangelio y la razón de toda urgencia en el testimonio. Sin resurrección no hay buenas noticias; con ella, hay las mejores noticias posibles.", taught:"Aprendí que el evangelio no es una filosofía de vida ni un sistema moral: es el anuncio de un hecho histórico. Cristo resucitó. Eso lo cambia todo: la muerte, el miedo, el futuro, la misión. Vivir como si la resurrección fuera solo una metáfora es traicionar la esencia del mensaje.", attention:"Me llamó la atención la urgencia del ángel: id pronto. No id cuando estén listos. La resurrección genera una urgencia que no admite dilación. Cada día que paso sin testificar es un día en que guardo para mí la mejor noticia del mundo.", apply:"Hoy voy a meditar en la resurrección no como un dogma sino como un hecho que cambia mi día. Si Cristo realmente resucitó, no tengo razón para tener miedo, ni para callar, ni para vivir sin esperanza.", prayer:"Señor Jesús resucitado, que la realidad de Tu resurrección cambie la manera en que enfrento cada día. Que esa verdad me dé urgencia para testificar y esperanza para vivir. Amén." },
+  { id:"new-16", date:"2026-08-09", theme:"Mi Historia es Mi Mejor Argumento",            passage:"Hechos 22:1-16",       central:"Pablo, ante el concilio que quería condenarlo, no presentó argumentos filosóficos: contó su historia. Lo que le había pasado en el camino a Damasco era irrefutable porque era personal. El testimonio personal tiene una autoridad que los argumentos intelectuales no pueden replicar.", taught:"Aprendí que mi historia de transformación es mi mejor herramienta evangelística. Nadie puede discutir lo que yo experimenté. Pueden rechazar una doctrina, pero no pueden invalidar un cambio de vida genuino que ellos mismos pueden ver.", attention:"Me impactó que Pablo contara su historia frente a personas que querían matarlo. No la guardó para momentos seguros o convenientes. La contó donde más se necesitaba escuchar, aunque fuera el lugar más peligroso.", apply:"Voy a practicar contar mi historia en tres minutos: antes de Cristo, el encuentro con Cristo, la vida después de Cristo. Esa historia es mi argumento más poderoso y necesito tenerla lista para cualquier momento.", prayer:"Señor, ayúdame a conocer bien mi propia historia y a no avergonzarme de ella. Lo que hiciste en mí es Tu mejor publicidad. Dame valentía para contarla en los momentos difíciles, no solo en los fáciles. Amén." },
+  { id:"new-17", date:"2026-08-10", theme:"El Testimonio que Convierte Juicios en Pulpitos",passage:"Hechos 26:1-29",    central:"Pablo ante el rey Agripa no se defendió: predicó. Convirtió su juicio en una oportunidad de evangelismo y terminó preguntándole al rey si creía en los profetas. El testimonio cristiano no conoce situaciones imposibles, solo oportunidades disfrazadas.", taught:"Aprendí que no hay contexto en el que sea imposible dar testimonio si el Espíritu está presente. Pablo no esperó el momento ideal; tomó el momento que tenía y lo convirtió en una oportunidad. La creatividad y la valentía del Espíritu no tienen restricciones de lugar ni de audiencia.", attention:"Lo que más me llamó la atención es la respuesta de Agripa: por poco me persuades a ser cristiano. Pablo llegó tan cerca que el rey mismo lo reconoció. No todo testimonio convierte de inmediato, pero siembra. El trabajo de Pablo ese día fue siembra poderosa.", apply:"Voy a cambiar la manera en que veo las situaciones difíciles: en lugar de pensar que no son el momento para hablar de fe, voy a preguntarme qué oportunidad está escondida en ese momento difícil.", prayer:"Señor, dame la creatividad de Pablo para ver oportunidades donde otros ven obstáculos. Que ninguna situación me parezca imposible para darte testimonio. Úsame incluso en mis momentos más difíciles. Amén." },
+  { id:"new-18", date:"2026-08-11", theme:"El Testigo que Está Disponible",               passage:"Hechos 8:26-35",       central:"El Espíritu dijo a Felipe: acércate y júntate a ese carro. Felipe no preguntó por qué: obedeció. Y en esa obediencia encontró a un hombre que estaba exactamente listo para escuchar el evangelio.", taught:"Aprendí que la disponibilidad es el requisito más importante del testigo. Felipe no era más elocuente que otros ni tenía más conocimiento. Simplemente estaba disponible y obedeció cuando el Espíritu lo dirigió. Dios no busca oradores perfectos: busca personas disponibles.", attention:"Me impactó que el etíope estaba leyendo a Isaías 53, uno de los pasajes más cristológicos del Antiguo Testamento. Dios ya lo había preparado; solo necesitaba a alguien que llegara y le explicara de quién hablaba. Yo podría ser ese alguien para alguien más.", apply:"Hoy voy a orar: Señor, estoy disponible. Si hay alguien en mi camino que necesite escuchar el evangelio hoy, haré el acercamiento. Voy a mantener los ojos abiertos a las oportunidades que el Espíritu prepare.", prayer:"Espíritu Santo, hazme disponible como Felipe. Que no me distraigan mis planes propios cuando Tú me dirijas hacia alguien que necesita escuchar de Jesús. Estoy disponible. Úsame hoy. Amén." },
+  { id:"new-19", date:"2026-08-12", theme:"La Vida Abundante como Testimonio",            passage:"Juan 3:16, 10:10",     central:"Dios amó al mundo de tal manera que dio a Su Hijo, para que todo aquel que cree tenga vida eterna. Y Jesús vino para que tengamos vida, y vida en abundancia. El evangelio no solo salva del infierno; ofrece una vida cualitativamente diferente desde ahora.", taught:"Aprendí que uno de los testimonios más poderosos que puedo dar no son mis palabras sino la calidad de vida que tengo en Cristo. Cuando las personas ven en mí gozo genuino, paz en medio de las tormentas, esperanza ante la muerte, eso habla más que cualquier argumento.", attention:"Me impactó el contraste en Juan 10:10: el ladrón viene para hurtar, matar y destruir; Jesús vino para dar vida abundante. Las personas que me rodean tienen que ver en mi vida la diferencia entre lo que el mundo ofrece y lo que Cristo da.", apply:"Voy a preguntarme hoy: ¿Es visible en mi vida la abundancia que Cristo prometió? No en términos materiales sino de gozo, paz, propósito y esperanza. Si no lo es, voy a pedirle a Dios que renueve esa experiencia en mí.", prayer:"Señor Jesús, gracias porque viniste a darme vida abundante. Que esa abundancia sea visible en mi rostro, en mi actitud, en mi manera de enfrentar las dificultades. Que mi vida sea un argumento viviente del evangelio. Amén." },
+  { id:"new-20", date:"2026-08-13", theme:"El Encuentro que Transforma",                  passage:"Hechos 22:1-16",       central:"El testimonio de Pablo ante el concilio es el relato de su encuentro con Cristo en el camino a Damasco. Un encuentro tan real, tan transformador, que lo cambió de perseguidor a predicador. Los encuentros genuinos con Cristo siempre producen transformación visible.", taught:"Aprendí que la transformación de vida es el argumento más convincente para el evangelio. Pablo no discutió teología con el concilio; mostró lo que Cristo había hecho con él. Una vida cambiada hace preguntas que ningún argumento puede callar.", attention:"Me llamó la atención que Pablo comenzó su defensa diciendo varones hermanos y padres, tratando con respeto a quienes querían condenarlo. La transformación de Cristo no solo cambió sus creencias; cambió su carácter. El evangelio se nota en cómo tratamos a las personas, especialmente a las que nos hacen daño.", apply:"Voy a revisar cómo trato a las personas que me irritan o me hacen daño. Si el evangelio es real en mí, debería verse en esa área más que en cualquier otra. Esa transformación de carácter es mi testimonio más creíble.", prayer:"Señor, que la transformación que comenzaste en mí sea visible en cómo trato a todos, incluyendo a quienes me hacen difícil la vida. Que mi carácter sea la prueba más fuerte de que Tú eres real. Amén." },
+  { id:"new-21", date:"2026-08-14", theme:"Nunca es el Momento Equivocado",               passage:"Hechos 26:1-29",       central:"Pablo predicó ante reyes, gobernadores y autoridades romanas sin bajar el tono del mensaje ni suavizar el evangelio. El contexto no determinó el contenido: el mismo Cristo, la misma resurrección, el mismo llamado al arrepentimiento, sin importar quién escuchaba.", taught:"Aprendí que la tentación de ajustar el evangelio según la audiencia puede hacerlo irreconocible. Pablo habló de resurrección ante quienes se burlaban de esa idea. No adaptó el mensaje para hacerlo más aceptable; confió en que el Espíritu haría Su obra con la verdad íntegra.", attention:"Me impactó que Festo interrumpiera diciendo que Pablo estaba loco, y que Pablo respondiera con calma y cortesía, apelando a Agripa. No se ofendió, no se desanimó, no abandonó. La seguridad del testigo no depende de la recepción del mensaje sino de la verdad del mismo.", apply:"Cuando alguien reaccione con burla o indiferencia ante mi testimonio, voy a recordar a Pablo ante Festo: mantener la calma, no ofenderme y seguir apelando con amor. La semilla que siembro hoy puede germinar en otro momento.", prayer:"Señor, dame la serenidad de Pablo ante el rechazo. Que mi seguridad venga de la verdad del evangelio, no de la recepción que tenga. Ayúdame a seguir sembrando aunque no vea el fruto de inmediato. Amén." },
+  { id:"new-22", date:"2026-08-15", theme:"El Evangelio Tiene Respuesta para Cada Pregunta",passage:"Hechos 8:26-35",    central:"Felipe le explicó al etíope que Isaías 53 hablaba de Jesús. La Escritura ya tenía la respuesta; lo que faltaba era alguien que la explicara. El testigo no solo comparte su experiencia: también ilumina la Palabra que el Espíritu ya está usando en el corazón del otro.", taught:"Aprendí que conocer las Escrituras hace mi testimonio más completo. No solo cuento mi historia personal, sino que conecto esa historia con la historia más grande de lo que Dios ha estado haciendo desde siempre. La Biblia no es solo mi libro de devoción, es la herramienta del Espíritu para hablar a todos los corazones.", attention:"Me impactó la pregunta del etíope: ¿De quién habla el profeta, de sí mismo o de algún otro? Estaba a un paso de la respuesta y no lo sabía. A veces las personas que me rodean están a una sola conversación de distancia del evangelio y no lo saben. Yo puedo ser esa conversación.", apply:"Esta semana voy a leer Isaías 53 y meditar en cómo ese texto señala a Jesús. Quiero estar listo para conectar la Escritura con el evangelio cuando alguien me haga preguntas. Ser testigo también implica conocer bien de quién estoy hablando.", prayer:"Señor, dame la sabiduría de Felipe para explicar Tu Palabra con claridad y relevancia. Que cuando alguien me haga preguntas sobre la fe, pueda conectar su búsqueda con la respuesta que solo Tú puedes dar. Amén." },
+  { id:"base-30", date:"2026-07-24", theme:"El Espíritu de Poder, Amor y Dominio Propio",       passage:"2 Timoteo 1:7-8",       central:"Pablo le escribe a Timoteo: porque no nos ha dado Dios espíritu de cobardía, sino de poder, de amor y de dominio propio. Por tanto, no te avergüences de dar testimonio de nuestro Señor. El miedo al testimonio no viene de Dios: los recursos para el testimonio sí.", taught:"Aprendí que el miedo no viene de Dios. Cuando me paralizo pensando que no soy suficiente para hablar de mi fe, estoy creyendo una mentira. Dios ya me equipó con poder para actuar, amor para relacionarme y dominio propio para no desviarme.", attention:"Lo que más me impactó fue la palabra cobardía. Pablo no dice nerviosismo sino cobardía. Es una palabra fuerte que me hizo pensar honestamente en cuántas veces he callado cuando debí hablar, disfrazando mi cobardía de prudencia.", apply:"Hoy voy a dar un paso de valentía concreto en algo que he estado evitando por miedo al qué dirán. Lo voy a hacer recordando que no lo hago con mis propias fuerzas sino con el poder que Dios ya puso en mí.", prayer:"Padre, gracias porque no me diste espíritu de cobardía. Perdóname por las veces que actué como si lo hubiera recibido. Dame valentía para dar testimonio sin avergonzarme, sabiendo que Tu Espíritu me equipa. Amén." }
+];
+
+// ── Storage ──────────────────────────────────────────────
+const STORAGE_KEY = 'devocional-entries-v2';
+let entries = [];
+let pendingDeleteId = null;
+
+async function loadEntries() {
+  try { const r = await window.storage.get(STORAGE_KEY); return r ? JSON.parse(r.value) : null; }
+  catch(e) { return null; }
+}
+async function saveEntries(arr) {
+  try { await window.storage.set(STORAGE_KEY, JSON.stringify(arr)); }
+  catch(e) { console.error(e); }
+}
+
+// ── Date selects ─────────────────────────────────────────
+function initDateSelects(dateStr) {
+  const dayEl = document.getElementById('f-day');
+  const yearEl = document.getElementById('f-year');
+  const today = dateStr ? new Date(dateStr + 'T12:00:00') : new Date();
+  const curYear = today.getFullYear();
+  dayEl.innerHTML = '';
+  for (let d = 1; d <= 31; d++) { const o = document.createElement('option'); o.value = String(d).padStart(2,'0'); o.textContent = d; dayEl.appendChild(o); }
+  yearEl.innerHTML = '';
+  for (let y = curYear - 3; y <= curYear + 2; y++) { const o = document.createElement('option'); o.value = y; o.textContent = y; yearEl.appendChild(o); }
+  dayEl.value = String(today.getDate()).padStart(2,'0');
+  document.getElementById('f-month').value = String(today.getMonth()+1).padStart(2,'0');
+  yearEl.value = curYear;
+  syncDate();
+}
+function syncDate() {
+  const d = document.getElementById('f-day').value;
+  const m = document.getElementById('f-month').value;
+  const y = document.getElementById('f-year').value;
+  document.getElementById('f-date').value = `${y}-${m}-${d}`;
+}
+function setDateSelects(dateStr) {
+  if (!dateStr) return;
+  const [y,m,d] = dateStr.split('-');
+  document.getElementById('f-day').value = d;
+  document.getElementById('f-month').value = m;
+  document.getElementById('f-year').value = y;
+  syncDate();
+}
+
+// ── Init ─────────────────────────────────────────────────
+(async () => {
+  initDateSelects();
+  const stored = await loadEntries();
+  if (stored === null) {
+    // First time: load base devotionals
+    entries = JSON.parse(JSON.stringify(BASE_DEVOTIONALS));
+    await saveEntries(entries);
+  } else {
+    entries = stored;
+  }
+  renderJournal();
+  updateCount();
+})();
+
+// ── Tabs ─────────────────────────────────────────────────
+function showTab(tab, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'journal') renderJournal();
+}
+
+// ── Save ─────────────────────────────────────────────────
+async function saveEntry() {
+  syncDate();
+  const date    = document.getElementById('f-date').value;
+  const passage = document.getElementById('f-passage').value.trim();
+  const theme   = document.getElementById('f-theme').value.trim();
+  if (!date || !passage || !theme) { showToast('⚠️ Completa fecha, pasaje y tema.'); return; }
+  const editId = document.getElementById('edit-id').value;
+  const entry = {
+    id: editId || Date.now().toString(), date, passage, theme,
+    central:   document.getElementById('f-central').value.trim(),
+    taught:    document.getElementById('f-taught').value.trim(),
+    attention: document.getElementById('f-attention').value.trim(),
+    apply:     document.getElementById('f-apply').value.trim(),
+    prayer:    document.getElementById('f-prayer').value.trim(),
+  };
+  if (editId) { entries = entries.map(e => e.id === editId ? entry : e); showToast('✔ Devocional actualizado.'); }
+  else { entries.push(entry); showToast('✔ Devocional guardado.'); }
+  await saveEntries(entries);
+  clearForm(); updateCount(); renderJournal();
+}
+
+function clearForm() {
+  ['f-passage','f-theme','f-central','f-taught','f-attention','f-apply','f-prayer'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('edit-id').value = '';
+  document.getElementById('btn-save').textContent = 'Guardar devocional';
+  initDateSelects();
+}
+
+// ── Journal ───────────────────────────────────────────────
+function renderJournal() {
+  const q = (document.getElementById('search').value || '').toLowerCase();
+  const list = document.getElementById('journal-list');
+  const filtered = entries
+    .filter(e => !q || [e.date,e.passage,e.theme,e.central,e.taught,e.attention,e.apply,e.prayer].some(f => (f||'').toLowerCase().includes(q)))
+    .slice().sort((a,b) => b.date.localeCompare(a.date));
+  updateCount(filtered.length);
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">📖</div><p>${entries.length===0?'Aún no tienes registros.<br>¡Empieza hoy tu primer devocional!':'No se encontraron registros.'}</p></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(e => cardHTML(e)).join('');
+}
+
+function cardHTML(e) {
+  const fields = [
+    {label:'💡 Mensaje central',key:'central'},{label:'📘 Qué me enseñó',key:'taught'},
+    {label:'✨ Lo que más me llamó la atención',key:'attention'},{label:'🎯 Cómo lo aplico',key:'apply'},
+    {label:'🙏 Oración personal',key:'prayer'},
+  ];
+  const fieldsHTML = fields.map(f => {
+    const val = e[f.key];
+    return `<div class="entry-field"><div class="entry-field-label">${f.label}</div><div class="entry-field-text${!val?' empty':''}">${val?escHtml(val):'Sin registrar'}</div></div>`;
+  }).join('');
+  return `<div class="entry-card" id="card-${e.id}">
+    <div class="entry-head" onclick="toggleCard('${e.id}')">
+      <div class="meta">
+        <div class="entry-date">${formatDate(e.date)}</div>
+        <div class="entry-theme">${escHtml(e.theme)}</div>
+        <div class="entry-passage">📖 ${escHtml(e.passage)}</div>
+      </div>
+      <div class="entry-toggle">▾</div>
+    </div>
+    <div class="entry-body">${fieldsHTML}</div>
+    <div class="entry-actions">
+      <button class="btn-edit" onclick="editEntry('${e.id}')">Editar</button>
+      <button class="btn-delete" onclick="askDelete('${e.id}')">Eliminar</button>
+    </div>
+  </div>`;
+}
+
+function toggleCard(id) { document.getElementById('card-'+id).classList.toggle('open'); }
+
+function editEntry(id) {
+  const e = entries.find(x => x.id===id); if (!e) return;
+  initDateSelects(e.date); setDateSelects(e.date);
+  document.getElementById('f-passage').value   = e.passage;
+  document.getElementById('f-theme').value     = e.theme;
+  document.getElementById('f-central').value   = e.central   || '';
+  document.getElementById('f-taught').value    = e.taught    || '';
+  document.getElementById('f-attention').value = e.attention || '';
+  document.getElementById('f-apply').value     = e.apply     || '';
+  document.getElementById('f-prayer').value    = e.prayer    || '';
+  document.getElementById('edit-id').value     = e.id;
+  document.getElementById('btn-save').textContent = 'Actualizar devocional';
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-form').classList.add('active');
+  document.querySelectorAll('.tab-btn')[0].classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function askDelete(id) { pendingDeleteId=id; document.getElementById('del-overlay').classList.add('show'); }
+function closeDeleteDialog() { pendingDeleteId=null; document.getElementById('del-overlay').classList.remove('show'); }
+async function confirmDelete() {
+  if (!pendingDeleteId) return;
+  entries = entries.filter(e => e.id!==pendingDeleteId);
+  await saveEntries(entries); closeDeleteDialog(); renderJournal(); updateCount();
+  showToast('🗑 Registro eliminado.');
+}
+
+// ── Export to Word ────────────────────────────────────────
+function exportWord() {
+  const btn = document.getElementById('btn-export');
+  btn.disabled = true; btn.textContent = '⏳ Generando...';
+  try {
+    const sorted = entries.slice().sort((a,b) => a.date.localeCompare(b.date));
+
+    function he(s) {
+      return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function makeEntry(dev, isFirst) {
+      const sections = [
+        {label:'¿Cuál es el mensaje central?',              key:'central'},
+        {label:'¿Qué me enseñó este pasaje?',               key:'taught'},
+        {label:'¿Qué fue lo que más me llamó la atención?', key:'attention'},
+        {label:'¿Cómo lo aplico?',                          key:'apply'},
+      ];
+      const pb = isFirst ? '' : 'mso-page-break-before:always;';
+      let h = `<div style="${pb}font-family:Georgia,serif;margin-bottom:0;">`;
+      h += `<p style="color:#7B3F00;font-style:italic;font-weight:bold;font-size:11pt;margin:0;line-height:1.2;">${he(formatDate(dev.date))}</p>`;
+      h += `<hr style="border:none;border-top:2px solid #7B3F00;margin:3px 0 6px 0;">`;
+      h += `<p style="color:#4A1A00;font-weight:bold;font-size:14pt;margin:0 0 2px 0;line-height:1.2;">TEMA: ${he(dev.theme||'')}</p>`;
+      h += `<p style="color:#1A3A5C;font-weight:bold;font-size:11pt;margin:0 0 6px 0;line-height:1.2;">PASAJE DEL DIA: ${he(dev.passage||'')}</p>`;
+      for (const s of sections) {
+        h += `<p style="color:#2C5F2E;font-weight:bold;font-size:10.5pt;margin:6px 0 1px 0;line-height:1.2;">${he(s.label)}</p>`;
+        h += `<p style="color:#222;font-size:10pt;margin:0 0 4px 12px;line-height:1.35;">${he(dev[s.key]||'')}</p>`;
+      }
+      h += `<p style="color:#5A2D82;font-weight:bold;font-style:italic;font-size:10.5pt;margin:6px 0 1px 0;line-height:1.2;">Oracion personal:</p>`;
+      h += `<p style="color:#333;font-style:italic;font-size:10pt;margin:0 0 4px 12px;line-height:1.35;">${he(dev.prayer||'')}</p>`;
+      h += `</div>`;
+      return h;
+    }
+
+    const today = new Date().toISOString().slice(0,10);
+
+    const html = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
+<head><meta charset="UTF-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:Georgia,serif; color:#1C1209; line-height:1.3; }
+  p { margin:0; padding:0; line-height:1.3; }
+  div { margin:0; padding:0; }
+  @page { margin:2cm; mso-page-orientation:portrait; }
+  @page Section1 { size:8.5in 11.0in; margin:1.5cm 2cm; }
+  div.Section1 { page:Section1; }
+</style>
+</head><body>
+<div class="Section1">
+<div style="text-align:center;font-family:Georgia,serif;margin-bottom:16pt;">
+  <p style="font-size:24pt;color:#4A1A00;font-weight:bold;margin:0;line-height:1.2;">Devocional Diario</p>
+  <p style="font-size:14pt;color:#7B3F00;font-style:italic;margin:4px 0;line-height:1.2;">Carlos Eduardo Gutierrez</p>
+  <p style="font-size:9pt;color:#555;font-style:italic;margin:0;line-height:1.3;">"Tu palabra es lampara a mis pies y lumbrera a mi camino." - Salmo 119:105</p>
+  <hr style="border:none;border-top:2px solid #7B3F00;margin:8px 0;">
+  <p style="font-size:9pt;color:#555;font-style:italic;margin:0;">Total: ${sorted.length} devocionales | Actualizado: ${he(formatDate(today))}</p>
+</div>
+${sorted.map((d,i) => makeEntry(d, i===0)).join('')}
+</div>
+</body></html>`;
+
+    const blob = new Blob([html], {type:'application/msword'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `devocional_CEG_${today}.doc`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Word descargado con ' + sorted.length + ' devocionales.');
+  } catch(err) {
+    console.error(err);
+    showToast('Error: ' + err.message);
+  }
+  btn.disabled = false;
+  btn.textContent = 'Descargar Word';
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function updateCount(n) {
+  const t = n!==undefined?n:entries.length;
+  document.getElementById('entry-count').textContent = `${t} ${t===1?'registro':'registros'}`;
+}
+function formatDate(iso) {
+  if (!iso) return '';
+  const [y,m,d] = iso.split('-');
+  const days=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const dt = new Date(parseInt(y),parseInt(m)-1,parseInt(d));
+  return `${days[dt.getDay()]}, ${parseInt(d)} de ${months[dt.getMonth()]} de ${y}`;
+}
+function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg) {
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+window.addEventListener('scroll',()=>{ document.getElementById('scroll-top').classList.toggle('visible',window.scrollY>200); });
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log('SW registered'))
+      .catch(e => console.log('SW error:', e));
+  });
+}
+</script>
+</body>
+</html>
